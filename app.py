@@ -5,11 +5,13 @@ import numpy as np
 import pandas as pd
 import pickle
 import os
+from train import ensure_model
 import json
 import requests
 from datetime import datetime
 from flask import flash
 from crop_symptoms_data import CROP_SYMPTOMS, CROP_DISEASES, CROP_DISEASES
+
 
 load_dotenv()
 
@@ -42,11 +44,21 @@ PINCODE_SOIL_MAP_PATH = os.path.join(os.path.dirname(__file__), 'data', 'pincode
 if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
     raise FileNotFoundError("Model or scaler file not found. Please ensure model.pkl and scaler.pkl exist.")
 
-# Load model and scaler
-with open(MODEL_PATH, 'rb') as f:
-    model = pickle.load(f)
-with open(SCALER_PATH, 'rb') as f:
-    scaler = pickle.load(f)
+try:
+    with open(MODEL_PATH, 'rb') as f:
+        model = pickle.load(f)
+
+    with open(SCALER_PATH, 'rb') as f:
+        scaler = pickle.load(f)
+
+except Exception:
+    ensure_model(force=True)
+
+    with open(MODEL_PATH, 'rb') as f:
+        model = pickle.load(f)
+
+    with open(SCALER_PATH, 'rb') as f:
+        scaler = pickle.load(f)
 
 # Load crop data
 try:

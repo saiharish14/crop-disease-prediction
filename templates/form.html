@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction - {{ crop|default('Crop') }} | CropCare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #60ad5e;
+            --primary-dark: #005005;
+            --secondary-color: #1565c0;
+            --light-gray: #f8f9fa;
+            --dark-gray: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+            --form-bg: #ffffff;
+            --input-border: #ced4da;
+            --input-focus: #80bdff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #495057;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .form-card {
+            background: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            margin-top: 5rem;
+            margin-bottom: 5rem;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .form-header h1 {
+            color: var(--dark-gray);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            font-size: 2rem;
+        }
+        
+        .form-header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.75rem;
+            position: relative;
+        }
+        
+        .form-label {
+    display: block;
+    margin-bottom: 0.15rem;      /* Increased space below label */
+    font-weight: 600;            /* Slightly bolder label */
+    color: #2f3640;              /* Darker text for clarity */
+    font-size: 1.1rem;           /* Increased label size */
+    line-height: 1.6;            /* More height for label text */
+    padding-top: 6px;            /* Extra top spacing = visually taller label */
+}
+
+/* Increase height of inputs/selects */
+.form-control, 
+.form-select, 
+.select2-container .select2-selection--single {
+    display: block;
+    width: 100%;
+    padding: 1rem 1.2rem;        /* Increased vertical padding */
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid var(--input-border);
+    border-radius: 0.45rem;      /* Slightly rounded */
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    height: auto;                /* IMPORTANT → Allows taller input */
+    min-height: 3.2rem;          /* Sets required height */
+}
+
+        
+        .form-control:focus, .form-select:focus, .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+            outline: 0;
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Style for Select2 dropdown */
+        .select2-container--default .select2-selection--single {
+            border: 1px solid var(--input-border);
+            border-radius: 0.375rem;
+            height: calc(2.5rem + 2px);
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 2.5rem;
+        }
+        
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 2.25;
+            padding-left: 0.5rem;
+        }
+        
+        .form-control.is-invalid, .was-validated .form-control:invalid,
+        .form-select.is-invalid, .was-validated .form-select:invalid,
+        .select2-container--default.select2-container--focus .select2-selection--single.is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-valid, .was-validated .form-control:valid,
+        .form-select.is-valid, .was-validated .form-select:valid {
+            border-color: #198754;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+        
+        .was-validated .form-control:invalid ~ .invalid-feedback,
+        .was-validated .form-control:invalid ~ .invalid-tooltip,
+        .form-control.is-invalid ~ .invalid-feedback,
+        .form-control.is-invalid ~ .invalid-tooltip {
+            display: block;
+        }
+        
+        /* Loading state for form fields */
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        input.form-control,
+        input.form-control:read-only,
+        input.form-control:disabled,
+        input.form-control.loading,
+        .form-control.bg-light {
+            color: #212529 !important;
+            -webkit-text-fill-color: #212529;
+            opacity: 1;
+        }
+
+        input.form-control:read-only,
+        .form-control.bg-light {
+            background-color: #f8f9fa;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #212529;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            margin: -0.75rem 0 0 -0.75rem;
+            border: 2px solid var(--primary-color);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+            background-color: transparent;
+        }
+        
+        .btn-outline-secondary:hover {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 0 1rem;
+            }
+            
+            .form-card {
+                padding: 1.5rem;
+            }
+            
+            .form-header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                border-radius: 0.375rem !important;
+                margin: 0.25rem 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h1 class="h4 mb-0">{{ crop|default('Crop') }} Disease Prediction</h1>
+                    <p class="text-muted mb-0">Fill in the details below to get an accurate disease diagnosis</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Error Message -->
+                    <div id="error-message" class="alert alert-danger d-none" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="error-text"></span>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div id="success-message" class="alert alert-success d-none" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span id="success-text"></span>
+                    </div>
+
+                    <!-- Main Form -->
+                    <form id="diseaseForm" novalidate onsubmit="event.preventDefault(); submitForm();">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="crop" id="cropName" value="{{ crop }}">
+
+                        <!-- 1. Selected Crop (read-only) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Selected Crop</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-leaf text-success"></i>
+                                </span>
+                                <input type="text" class="form-control bg-light" value="{{ crop|title }}" readonly>
+                            </div>
+                        </div>
+
+                        <!-- 2. Growing Season (dropdown) -->
+                        <div class="mb-4">
+                            <label for="season" class="form-label fw-semibold">Growing Season <span class="text-danger">*</span></label>
+                            <select class="form-select" id="season" name="season" required>
+                                <option value="" selected disabled>Select growing season</option>
+                                <option value="Kharif">Kharif (June - October)</option>
+                                <option value="Rabi">Rabi (October - March)</option>
+                                <option value="Zaid">Zaid (March - June)</option>
+                                <option value="Monsoon">Monsoon</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a growing season.</div>
+                        </div>
+
+                        <!-- 3. Pincode (dropdown) -->
+                        <div class="mb-4">
+                            <label for="pincode" class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pincode" name="pincode" required>
+                                <option value="" selected disabled>Select pincode</option>
+                                {% for item in pincodes %}
+                                <option value="{{ item.pincode }}">{{ item.pincode }} - {{ item.district }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select a pincode.</div>
+                        </div>
+
+                        <!-- 4. District + Soil Type (auto-filled side by side) -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="district" class="form-label fw-semibold">District</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-map-marker-alt text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control bg-light" id="district" name="district" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="soilType" class="form-label fw-semibold">Soil Type</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-mountain text-success"></i>
+                                        </span>
+                                        <input type="text" class="form-control bg-light" id="soilType" name="soil_type" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Weather Information (auto-filled) -->
+                        <div class="card mb-4 border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-cloud-sun text-primary me-2"></i>
+                                    Weather Information
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Temperature</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="fas fa-thermometer-half text-danger"></i>
+                                                </span>
+                                                <input type="text" class="form-control bg-light" id="temperature" name="temperature" readonly>
+                                                <span class="input-group-text bg-light">°C</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Humidity</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="fas fa-tint text-info"></i>
+                                                </span>
+                                                <input type="text" class="form-control bg-light" id="humidity" name="humidity" readonly>
+                                                <span class="input-group-text bg-light">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Rainfall</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="fas fa-cloud-rain text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control bg-light" id="rainfall" name="rainfall" readonly>
+                                                <span class="input-group-text bg-light">mm</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Observed Symptoms -->
+                        <div class="mb-4">
+                            <label for="symptoms" class="form-label fw-semibold">Observed Symptoms <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="symptoms" name="symptoms" rows="4" required 
+                                placeholder="Describe the symptoms you've observed on your crops..."></textarea>
+                            <div class="invalid-feedback">Please describe the symptoms.</div>
+                            <div class="form-text mb-2">Be as detailed as possible for better accuracy</div>
+
+                            <!-- Reference Symptoms & Diseases Box (for user guidance only) -->
+                            <div class="card border-0 shadow-sm mt-3" id="symptomsReferenceBox" style="display: none;">
+                                <div class="card-body py-3 px-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                                        <h6 class="mb-0 text-muted">Common symptoms seen in this crop</h6>
+                                    </div>
+                                    <ul class="mb-0 ps-3 small" id="symptomsReferenceList">
+                                        <!-- Filled dynamically from /get-crop-symptoms -->
+                                    </ul>
+                                    <hr class="my-2">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-virus text-danger me-2"></i>
+                                        <h6 class="mb-0 text-muted">Common diseases for this crop</h6>
+                                    </div>
+                                    <ul class="mb-0 ps-3 small" id="diseasesReferenceList">
+                                        <!-- Filled dynamically from /get-crop-diseases -->
+                                    </ul>
+                                    <p class="mb-0 mt-2 small text-muted">
+                                        These are just examples to help you identify issues. Please describe the exact symptoms you see on your plants. The prediction will NOT be auto-filled from this box.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-between mt-5">
+                            <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Home
+                            </a>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                                    <i class="fas fa-undo me-2"></i>Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-search me-2"></i>Predict Disease
+                                    <span class="spinner-border spinner-border-sm d-none" id="submitSpinner"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Card -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8">
+            <div id="resultCard" class="card shadow-sm border-0 mb-5" style="display: none;">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-diagnoses text-primary me-2"></i>
+                        Disease Prediction Results
+                    </h2>
+                    <p class="text-muted mb-0">Based on the provided information, here's what we found</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h3 id="diseaseName" class="mb-2 text-primary">-</h3>
+                        <p class="text-muted">Confidence: <span id="confidence" class="badge bg-success">-</span></p>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-3">
+                                        <i class="fas fa-info-circle text-primary me-2"></i>
+                                        Location Details
+                                    </h6>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
+                                            <span class="text-muted">District:</span>
+                                            <span class="fw-medium" id="districtResult">-</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span class="text-muted">Soil Type:</span>
+                                            <span class="fw-medium" id="soilTypeResult">-</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span class="text-muted">Season:</span>
+                                            <span class="fw-medium" id="seasonResult">-</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-3">
+                                        <i class="fas fa-cloud-sun text-info me-2"></i>
+                                        Weather Conditions
+                                    </h6>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
+                                            <span class="text-muted">Temperature:</span>
+                                            <span class="fw-medium" id="tempResult">- °C</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span class="text-muted">Humidity:</span>
+                                            <span class="fw-medium" id="humidityResult">- %</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span class="text-muted">Rainfall:</span>
+                                            <span class="fw-medium" id="rainfallResult">- mm</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-clipboard-check text-success me-2"></i>
+                                Recommended Treatment
+                            </h6>
+                            <div id="advice" class="advice-content">
+                                <p class="mb-0">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Back to Home
+                        </a>
+                        <button type="button" class="btn btn-primary" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center py-4 text-muted small">
+        <p class="mb-0">&copy; 2023 CropCare. All rights reserved.</p>
+    </footer>
+    <!-- Loading Overlay -->
+<div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none justify-content-center align-items-center" id="loadingOverlay" style="z-index: 9999;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="resultModalLabel">Disease Prediction Result</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <i class="fas fa-diagnoses fa-4x text-primary mb-3"></i>
+                        <h3 id="diseaseName" class="mb-2">-</h3>
+                        <p class="text-muted">Confidence: <span id="confidence" class="badge bg-success">-</span></p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title text-muted mb-3">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>Location Details
+                                </h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>District:</span>
+                                        <span class="fw-medium" id="districtResult">-</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Soil Type:</span>
+                                        <span class="fw-medium" id="soilTypeResult">-</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Season:</span>
+                                        <span class="fw-medium" id="seasonResult">-</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title text-muted mb-3">
+                                    <i class="fas fa-cloud-sun text-info me-2"></i>Weather Conditions
+                                </h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Temperature:</span>
+                                        <span class="fw-medium" id="tempResult">- °C</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Humidity:</span>
+                                        <span class="fw-medium" id="humidityResult">- %</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span>Rainfall:</span>
+                                        <span class="fw-medium" id="rainfallResult">- mm</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="fas fa-clipboard-check text-success me-2"></i>Recommended Actions
+                        </h6>
+                        <div id="advice" class="advice-content">
+                            <p class="mb-0">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    For best results, consult with an agricultural expert for confirmation and personalized advice.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom Scripts -->
+<script>
+    // Global variables
+    let currentPincode = '';
+    let currentSeason = '';
+    
+    // Initialize the form when document is ready
+    $(document).ready(function() {
+        initializeForm();
+        setupEventListeners();
+    });
+    
+    // Initialize form elements
+    function initializeForm() {
+        // Initialize Select2 for pincode dropdown
+        $('#pincode').select2({
+            placeholder: 'Select a pincode',
+            allowClear: true,
+            width: '100%'
+        });
+        
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    }
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Pincode change event
+        const pincodeSelect = $('#pincode');
+        
+        // Initialize Select2 if not already initialized
+        if (!pincodeSelect.hasClass('select2-hidden-accessible')) {
+            pincodeSelect.select2({
+                placeholder: 'Select a pincode',
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        pincodeSelect.on('change', function() {
+            const pincode = $(this).val();
+            currentPincode = pincode;
+            if (pincode) {
+                updateLocationAndWeather(pincode);
+            } else {
+                resetLocationFields();
+                resetWeatherFields();
+            }
+        });
+        
+        // Season change event
+        const seasonSelect = $('#season');
+        seasonSelect.on('change', function() {
+            currentSeason = $(this).val();
+            if (currentPincode) {
+                updateLocationAndWeather(currentPincode);
+            } else if (pincodeSelect.val()) {
+                // If pincode is selected but currentPincode isn't set
+                currentPincode = pincodeSelect.val();
+                updateLocationAndWeather(currentPincode);
+            }
+        });
+        
+        // Form submit handler
+        $('#diseaseForm').on('submit', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+        
+        // Reset button handlers
+        $('#resetBtn, #resetFormBtn').on('click', function(e) {
+            e.preventDefault();
+            resetForm();
+        });
+        
+        // Print button handler
+        $('.print-btn, #printBtn').on('click', function() {
+            window.print();
+        });
+    }
+    
+    // Update location and weather information
+    function updateLocationAndWeather(pincode) {
+        if (!pincode) {
+            resetLocationFields();
+            resetWeatherFields();
+            return;
+        }
+        
+        showLoading(true);
+        
+        // Make AJAX call to get location and weather data
+        $.ajax({
+            url: '{{ url_for("get_location") }}',
+            method: 'GET',
+            data: {
+                pincode: pincode,
+                season: currentSeason || 'Kharif' // Default to Kharif if not selected
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Update district and soil type
+                    if (response.district) {
+                        $('#district').val(response.district);
+                        $('#districtResult').text(response.district);
+                    } else {
+                        $('#district, #districtResult').val('');
+                    }
+                    
+                    if (response.soil_type) {
+                        $('#soilType').val(response.soil_type);
+                        $('#soilTypeResult').text(response.soil_type);
+                    } else {
+                        $('#soilType, #soilTypeResult').val('');
+                    }
+                    
+                    // Update weather information
+                    if (response.weather) {
+                        const weather = response.weather;
+                        
+                        // Update temperature
+                        if (weather.temperature !== undefined) {
+                            $('#temperature').val(weather.temperature.toFixed(1));
+                            $('#tempResult').text(weather.temperature.toFixed(1) + ' °C');
+                        } else {
+                            $('#temperature, #tempResult').val('');
+                        }
+                        
+                        // Update humidity
+                        if (weather.humidity !== undefined) {
+                            $('#humidity').val(weather.humidity);
+                            $('#humidityResult').text(weather.humidity + ' %');
+                        } else {
+                            $('#humidity, #humidityResult').val('');
+                        }
+                        
+                        // Update rainfall
+                        if (weather.rainfall !== undefined) {
+                            $('#rainfall').val(weather.rainfall.toFixed(1));
+                            $('#rainfallResult').text(weather.rainfall.toFixed(1) + ' mm');
+                        } else {
+                            $('#rainfall, #rainfallResult').val('');
+                        }
+                    } else {
+                        resetWeatherFields();
+                    }
+                    
+                    // Update season in results
+                    if (currentSeason) {
+                        $('#seasonResult').text(currentSeason);
+                    } else {
+                        $('#seasonResult').text('-');
+                    }
+                    
+                    showMessage('success', 'Location and weather data updated successfully');
+                } else {
+                    showMessage('error', response.message || 'Failed to fetch location data');
+                    resetLocationFields();
+                    resetWeatherFields();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching location data:', error);
+                showMessage('error', 'Failed to fetch location data. Please try again.');
+                resetLocationFields();
+                resetWeatherFields();
+            },
+            complete: function() {
+                showLoading(false);
+            }
+        });
+    }
+    
+    // Submit form data
+    function submitForm() {
+        // Validate form
+        const form = document.getElementById('diseaseForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+        
+        showLoading(true);
+        
+        // Get form data
+        const formData = new FormData(form);
+        
+        // Submit form data
+        fetch('{{ url_for("predict_disease") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayResults(data);
+            } else {
+                throw new Error(data.message || 'Failed to get prediction');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', error.message || 'An error occurred. Please try again.');
+        })
+        .finally(() => {
+            showLoading(false);
+        });
+    }
+    
+    // Display prediction results
+    function displayResults(data) {
+        // Update modal with prediction results
+        if (data.disease) {
+            $('#diseaseName').text(data.disease);
+        }
+        
+        if (data.confidence) {
+            $('#confidence').text(data.confidence + '%');
+        }
+        
+        if (data.advice) {
+            // Format advice as list items if it contains multiple points
+            const adviceItems = data.advice.split('\n').filter(item => item.trim() !== '');
+            const formattedAdvice = adviceItems.length > 1 
+                ? '<ul class="mb-0">' + adviceItems.map(item => `<li>${item}</li>`).join('') + '</ul>'
+                : `<p class="mb-0">${data.advice}</p>`;
+            
+            $('#advice').html(formattedAdvice);
+        }
+        
+        // Show the modal
+        const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+        resultModal.show();
+    }
+    
+    // Reset form fields
+    function resetForm() {
+        // Reset form elements
+        document.getElementById('diseaseForm').reset();
+        
+        // Reset Select2 dropdowns
+        $('#pincode').val(null).trigger('change');
+        
+        // Clear read-only fields
+        resetLocationFields();
+        resetWeatherFields();
+        
+        // Remove validation classes
+        $('.needs-validation').removeClass('was-validated');
+        
+        // Clear any messages
+        $('.alert').addClass('d-none');
+    }
+    
+    // Reset location fields
+    function resetLocationFields() {
+        $('#district, #soilType').val('');
+        $('#districtResult, #soilTypeResult, #seasonResult').text('-');
+        currentPincode = '';
+    }
+    
+    // Reset weather fields
+    function resetWeatherFields() {
+        $('#temperature, #humidity, #rainfall').val('');
+        $('#tempResult, #humidityResult, #rainfallResult').text('-');
+        currentSeason = '';
+    }
+    
+    // Show/hide loading state
+    function showLoading(show) {
+        if (show) {
+            $('#loadingOverlay').removeClass('d-none').addClass('d-flex');
+            $('#submitBtn').prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+        } else {
+            $('#loadingOverlay').removeClass('d-flex').addClass('d-none');
+            $('#submitBtn').prop('disabled', false);
+            $('#submitSpinner').addClass('d-none');
+        }
+    }
+    
+    // Show success/error message
+    function showMessage(type, message) {
+        // Hide all alerts first
+        $('.alert').addClass('d-none');
+        
+        if (type === 'success') {
+            $('#success-message').removeClass('d-none');
+            $('#success-text').text(message);
+        } else {
+            $('#error-message').removeClass('d-none');
+            $('#error-text').text(message);
+        }
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            $('.alert').fadeOut(500, function() {
+                $(this).addClass('d-none').show();
+            });
+        }, 5000);
+    }
+        // Reset form function
+        function resetForm() {
+            // Reset form elements
+            document.getElementById('diseaseForm').reset();
+            
+            // Reset Select2 dropdowns
+            $('#pincode').val(null).trigger('change');
+            
+            // Clear read-only fields
+            resetLocationFields();
+            resetWeatherFields();
+            
+            // Remove validation classes
+            $('.needs-validation').removeClass('was-validated');
+            
+            // Clear any messages
+            $('.alert').addClass('d-none');
+            
+            // Hide result card if visible
+            $('#resultCard').hide();
+            
+            // Scroll to top of form
+            $('html, body').animate({
+                scrollTop: $('.form-header').offset().top - 20
+            }, 'fast');
+        }
+
+        // Initialize when document is ready
+        $(document).ready(function() {
+            console.log('Document ready, initializing form...');
+            
+            // Initialize form elements and event listeners
+            initializeForm();
+            setupEventListeners();
+            
+            // Set current timestamp
+            const now = new Date();
+            $('#timestamp').text(now.toLocaleString());
+            
+            // Crop to Season mapping
+            const cropSeasonMap = {
+                // Kharif crops (June - October)
+                'rice': 'Kharif',
+                'maize': 'Kharif',
+                'cotton': 'Kharif',
+                'soybean': 'Kharif',
+                'groundnut': 'Kharif',
+                'sorghum': 'Kharif',
+                // Rabi crops (October - March)
+                'wheat': 'Rabi',
+                'barley': 'Rabi',
+                'chickpea': 'Rabi',
+                'mustard': 'Rabi',
+                'peas': 'Rabi',
+                'linseed': 'Rabi',
+                // Zaid crops (March - June)
+                'watermelon': 'Zaid',
+                'muskmelon': 'Zaid',
+                'cucumber': 'Zaid',
+                'bitter gourd': 'Zaid',
+                'bitter-gourd': 'Zaid',  // Handle hyphenated version from URL
+                'pumpkin': 'Zaid',
+                'ridge gourd': 'Zaid',
+                'ridge-gourd': 'Zaid'    // Handle hyphenated version from URL
+            };
+            
+            // Function to auto-select season based on crop
+            function autoSelectSeason() {
+                const cropName = $('#cropName').val();
+                if (cropName) {
+                    const cropLower = cropName.toLowerCase().trim();
+                    // Try exact match first, then try replacing hyphens with spaces
+                    let season = cropSeasonMap[cropLower];
+                    if (!season) {
+                        const cropWithSpaces = cropLower.replace(/-/g, ' ');
+                        season = cropSeasonMap[cropWithSpaces];
+                    }
+                    if (season) {
+                        $('#season').val(season).trigger('change');
+                        console.log(`Auto-selected season "${season}" for crop "${cropName}"`);
+                    } else {
+                        console.log(`No season mapping found for crop "${cropName}"`);
+                    }
+                }
+            }
+            
+            // Auto-fill crop name in the form if provided in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const cropName = urlParams.get('crop');
+            if (cropName) {
+                $('#cropName').val(cropName);
+                // Auto-select season based on crop
+                autoSelectSeason();
+            }
+            
+            // Load reference symptoms for current crop (if any)
+            updateSymptomsReference();
+            // Load reference diseases for current crop (if any)
+            updateDiseasesReference();
+            
+            // Add click handler for reset button
+            $('#resetBtn, #resetFormBtn').on('click', function(e) {
+                e.preventDefault();
+                resetForm();
+            });
+            
+            // Print report
+            $('.print-btn').on('click', function() {
+                window.print();
+            });
+        });
+
+        
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Real-time validation for required fields
+            $('input[required], select[required], textarea[required]').on('input change', function() {
+                const $this = $(this);
+                const $formGroup = $this.closest('.form-group');
+                
+                if (this.checkValidity()) {
+                    $formGroup.addClass('was-validated');
+                    $this.removeClass('is-invalid').addClass('is-valid');
+                } else {
+                    $this.removeClass('is-valid');
+                    if ($this.is(':focus') || $this.val() !== '') {
+                        $this.addClass('is-invalid');
+                    }
+                }
+            });
+            
+            // Blur validation for better UX
+            $('input[required], select[required], textarea[required]').on('blur', function() {
+                const $this = $(this);
+                if ($this.val() === '') {
+                    $this.removeClass('is-valid').addClass('is-invalid');
+                }
+            });
+            
+            // Handle form reset
+            $('button[type="reset"], #resetBtn, #resetFormBtn').on('click', function() {
+                const form = document.getElementById('diseaseForm');
+                form.classList.remove('was-validated');
+                $('input, select, textarea').removeClass('is-valid is-invalid');
+                resetLocationFields();
+                resetWeatherFields();
+                clearSymptomsReference();
+            });
+            
+            // Handle scroll to top button
+            $(window).on('scroll', function() {
+                const scrollTop = $(this).scrollTop();
+                if (scrollTop > 300) {
+                    $('.back-to-top').fadeIn();
+                } else {
+                    $('.back-to-top').fadeOut();
+                }
+            });
+            
+            $('.back-to-top').on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({ scrollTop: 0 }, 'smooth');
+            });
+            
+            // Handle pincode change - use event delegation in case the element is dynamically added
+            $(document).on('change', '#pincode', function() {
+                const pincode = $(this).val();
+                console.log('Pincode changed to:', pincode);
+                if (pincode) {
+                    updateSoilType(pincode);
+                } else {
+                    resetLocationFields();
+                    resetWeatherFields();
+                }
+            });
+            
+            // Also trigger change on page load if pincode is already selected
+            const initialPincode = $('#pincode').val();
+            if (initialPincode) {
+                console.log('Initial pincode found, triggering update:', initialPincode);
+                updateSoilType(initialPincode);
+            }
+        };
+
+        // Update location and weather data based on pincode
+        function updateSoilType(pincode) {
+            console.log('updateSoilType called with pincode:', pincode);
+            if (!pincode) {
+                console.log('No pincode provided, resetting fields');
+                resetLocationFields();
+                resetWeatherFields();
+                return;
+            }
+            
+            // Get the current season for weather data fallback
+            const season = $('#season').val() || '';
+            
+            // Show loading state for all fields that will be updated
+            const fields = $('#district, #soilType, #temperature, #humidity, #rainfall');
+            fields.addClass('loading');
+            
+            // Clear any previous error messages
+            $('#pincode').removeClass('is-invalid');
+            
+            // Call the backend endpoint
+            $.ajax({
+                url: '/get-location',
+                method: 'GET',
+                data: { 
+                    pincode: pincode,
+                    season: season
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update district and soil type
+                        $('#district').val(response.district || 'Not available');
+                        $('#soilType').val(response.soil_type || 'Not available');
+                        
+                        // Update weather fields
+                        if (response.temperature !== undefined) {
+                            $('#temperature').val(parseFloat(response.temperature).toFixed(1));
+                            $('#humidity').val(parseInt(response.humidity));
+                            $('#rainfall').val(parseFloat(response.rainfall).toFixed(1));
+                            
+                            // Make fields read-only
+                            $('#temperature, #humidity, #rainfall').prop('readonly', true);
+                        }
+                        
+                        // Show success message with warning if weather data is not available
+                        if (response.warning) {
+                            showWarning(response.warning);
+                        } else {
+                            showSuccess('Location and weather data updated successfully');
+                        }
+                    } else {
+                        // Handle specific error cases
+                        let errorMessage = 'Failed to fetch location data';
+                        
+                        if (response.error === 'pincode_not_found') {
+                            errorMessage = response.message || 'Pincode not found in our database';
+                            $('#pincode').addClass('is-invalid');
+                            resetLocationFields();
+                            resetWeatherFields();
+                        } else {
+                            // For other errors, still try to update with available data
+                            if (response.district) {
+                                $('#district').val(response.district);
+                            }
+                            if (response.soil_type) {
+                                $('#soilType').val(response.soil_type);
+                            }
+                            
+                            // Set default weather values
+                            $('#temperature').val(response.temperature !== undefined ? parseFloat(response.temperature).toFixed(1) : '25.0');
+                            $('#humidity').val(response.humidity !== undefined ? parseInt(response.humidity) : '60');
+                            $('#rainfall').val(response.rainfall !== undefined ? parseFloat(response.rainfall).toFixed(1) : '0');
+                            
+                            // Make fields read-only
+                            $('#temperature, #humidity, #rainfall').prop('readonly', true);
+                            
+                            showWarning('Using default weather data: ' + (response.error || 'Data not available'));
+                            return; // Skip the error reset below
+                        }
+                        
+                        showError(errorMessage);
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error connecting to server';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    } else if (xhr.statusText) {
+                        errorMsg += `: ${xhr.statusText}`;
+                    }
+                    showError(errorMsg);
+                    resetLocationFields();
+                    resetWeatherFields();
+                },
+                complete: function() {
+                    // Remove loading state from all fields
+                    fields.removeClass('loading');
+                }
+            });
+        }
+        
+        // Reset location fields to empty
+        function resetLocationFields() {
+            $('#district, #soilType').val('');
+        }
+
+        // Reset weather fields and make them editable
+        function resetWeatherFields() {
+            const fields = $('#temperature, #humidity, #rainfall');
+            fields.val('');
+            fields.prop('readonly', false);
+        }
+
+        // Show/hide reference box depending on whether we have any data
+        function toggleReferenceBoxVisibility() {
+            const hasSymptoms = $('#symptomsReferenceList li').length > 0;
+            const hasDiseases = $('#diseasesReferenceList li').length > 0;
+            if (hasSymptoms || hasDiseases) {
+                $('#symptomsReferenceBox').show();
+            } else {
+                $('#symptomsReferenceBox').hide();
+            }
+        }
+
+        // Clear symptoms & diseases reference box
+        function clearSymptomsReference() {
+            $('#symptomsReferenceList').empty();
+            $('#diseasesReferenceList').empty();
+            $('#symptomsReferenceBox').hide();
+        }
+
+        // Load reference symptoms for the selected crop (for user guidance only)
+        function updateSymptomsReference() {
+            const cropName = $('#cropName').val();
+            if (!cropName) {
+                clearSymptomsReference();
+                return;
+            }
+
+            $.ajax({
+                url: `/get-crop-symptoms/${encodeURIComponent(cropName)}`,
+                type: 'GET',
+                success: function(response) {
+                    const symptoms = (response && response.symptoms) ? response.symptoms : [];
+                    const $list = $('#symptomsReferenceList');
+
+                    if (!symptoms.length) {
+                        $list.empty();
+                    } else {
+                        $list.empty();
+                        symptoms.forEach(symptom => {
+                            $list.append(`<li>${symptom}</li>`);
+                        });
+                    }
+
+                    toggleReferenceBoxVisibility();
+                },
+                error: function() {
+                    // On error, just clear symptoms list and re-evaluate visibility
+                    $('#symptomsReferenceList').empty();
+                    toggleReferenceBoxVisibility();
+                }
+            });
+        }
+
+        // Load reference diseases for the selected crop (for user guidance only)
+        function updateDiseasesReference() {
+            const cropName = $('#cropName').val();
+            if (!cropName) {
+                clearSymptomsReference();
+                return;
+            }
+
+            $.ajax({
+                url: `/get-crop-diseases/${encodeURIComponent(cropName)}`,
+                type: 'GET',
+                success: function(response) {
+                    const diseases = (response && response.diseases) ? response.diseases : [];
+                    const $list = $('#diseasesReferenceList');
+
+                    if (!diseases.length) {
+                        $list.empty();
+                    } else {
+                        $list.empty();
+                        diseases.forEach(disease => {
+                            $list.append(`<li>${disease}</li>`);
+                        });
+                    }
+
+                    toggleReferenceBoxVisibility();
+                },
+                error: function() {
+                    $('#diseasesReferenceList').empty();
+                    toggleReferenceBoxVisibility();
+                }
+            });
+        }
+
+        // Submit form data
+        function submitForm() {
+            const form = $('#diseaseForm')[0];
+            const submitBtn = $('#submitBtn');
+            const originalBtnText = submitBtn.html();
+            
+            // Hide any previous error messages
+            $('#error-message').addClass('d-none');
+            
+            // Basic HTML5 validation
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    $('html, body').animate({
+                        scrollTop: $(firstInvalid).offset().top - 100
+                    }, 'fast');
+                    firstInvalid.focus();
+                }
+                return false;
+            }
+            
+            // Prevent multiple submissions
+            if (submitBtn.prop('disabled')) {
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.prop('disabled', true);
+            submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...');
+            showLoading();
+            
+            // Prepare form data with proper types
+            const formData = {
+                crop_name: $('#cropName').val(),
+                pincode: $('#pincode').val(),
+                season: $('#season').val(),
+                symptoms: $('#symptoms').val() || '',  // Optional field
+                temperature: parseFloat($('#temperature').val()) || 0,
+                humidity: parseFloat($('#humidity').val()) || 0,
+                rainfall: parseFloat($('#rainfall').val()) || 0,
+                soil_type: $('#soilType').val() || 'Unknown',
+                district: $('#district').val() || 'Unknown'
+            };
+            
+            // Get CSRF token
+            const csrfToken = $('input[name="csrf_token"]').val();
+            
+            // Submit form data to the prediction endpoint
+            $.ajax({
+                url: '{{ url_for("predict_disease") }}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                success: function(response) {
+                    hideLoading();
+                    submitBtn.html(originalBtnText);
+                    submitBtn.prop('disabled', false);
+                    
+                    if (response.success) {
+                        // Display results
+                        displayResults(response);
+                        
+                        // Show the result card
+                        $('#resultCard').show();
+                        
+                        // Scroll to results
+                        $('html, body').animate({
+                            scrollTop: $('#resultCard').offset().top - 20
+                        }, 'smooth');
+                        
+                        // Show success message
+                        showSuccess('Disease prediction completed successfully!');
+                    } else {
+                        showError(response.error || 'An error occurred while processing your request.');
+                        // Re-enable the submit button on error
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html(originalBtnText);
+                    }
+                },
+                error: function(xhr) {
+                    hideLoading();
+                    submitBtn.html(originalBtnText);
+                    submitBtn.prop('disabled', false);
+                    
+                    let errorMsg = 'An error occurred while processing your request.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    } else if (xhr.status === 0) {
+                        errorMsg = 'Unable to connect to the server. Please check your internet connection.';
+                    } else if (xhr.status === 400) {
+                        errorMsg = 'Invalid request. Please check your input and try again.';
+                    } else if (xhr.status === 500) {
+                        errorMsg = 'A server error occurred. Please try again later.';
+                    } else if (xhr.statusText) {
+                        errorMsg += ' ' + xhr.statusText;
+                    }
+                    showError(errorMsg);
+                },
+                complete: function() {
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalBtnText);
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Show loading overlay
+        function showLoading() {
+            $('.loading-overlay').css('display', 'flex').hide().fadeIn(200);
+            $('body').css('overflow', 'hidden');
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            $('.loading-overlay').fadeOut(200, function() {
+                $(this).hide();
+            });
+            $('body').css('overflow', '');
+        }
+
+        // Display prediction results
+        function displayResults(data) {
+            console.log('Displaying results:', data); // Debug log
+            
+            if (data) {
+                // Set disease and confidence (handle both direct and nested prediction object)
+                const disease = data.disease || (data.prediction && data.prediction.disease) || 'Unknown';
+                const confidence = data.confidence || (data.prediction && data.prediction.confidence) || '0%';
+                
+                $('#diseaseName').text(disease);
+                $('#confidence').text(confidence);
+                
+                // Set location details
+                $('#districtResult').text(data.district || 'Unknown');
+                $('#soilTypeResult').text(data.soil_type || 'Unknown');
+                $('#seasonResult').text(data.season || 'Unknown');
+                
+                // Set weather details
+                $('#tempResult').text(data.temperature ? data.temperature + ' °C' : '- °C');
+                $('#humidityResult').text(data.humidity ? data.humidity + ' %' : '- %');
+                $('#rainfallResult').text(data.rainfall ? data.rainfall + ' mm' : '- mm');
+                
+                // Format and set advice (handle both direct and nested advice)
+                let advice = data.advice || (data.prediction && data.prediction.advice) || 
+                            'No specific treatment advice available.';
+                
+                // If advice is an object, try to get the advice for the specific crop
+                if (typeof advice === 'object' && data.crop) {
+                    advice = advice[data.crop.toLowerCase()] || 'No specific treatment advice available.';
+                }
+                
+                $('#advice').html(advice.replace(/\n/g, '<br>'));
+                
+                // Show the result card
+                const resultCard = $('#resultCard');
+                resultCard.show();
+                
+                // Scroll to results
+                $('html, body').animate({
+                    scrollTop: resultCard.offset().top - 20
+                }, 'smooth');
+            } else {
+                console.error('No data received in displayResults');
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = $('#error-message');
+            $('#error-text').text(message);
+            
+            // Remove any existing alert classes
+            errorDiv.removeClass('alert-success alert-warning alert-info')
+                   .addClass('alert-danger');
+            
+            errorDiv.slideDown();
+            
+            // Hide error after 8 seconds
+            setTimeout(() => {
+                errorDiv.slideUp();
+            }, 8000);
+            
+            // Scroll to error message
+            $('html, body').animate({
+                scrollTop: errorDiv.offset().top - 20
+            }, 'smooth');
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const errorDiv = $('#error-message');
+            $('#error-text').html(`<i class="fas fa-check-circle me-2"></i> ${message}`);
+            
+            // Update styles for success message
+            errorDiv.removeClass('alert-danger alert-warning alert-info')
+                   .addClass('alert-success');
+            
+            errorDiv.slideDown();
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                errorDiv.slideUp();
+            }, 5000);
+            
+            // Scroll to message
+            $('html, body').animate({
+                scrollTop: errorDiv.offset().top - 20
+            }, 'smooth');
+        }
+    </script>
+</body>
+</html>

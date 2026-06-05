@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropCare - Smart Crop Disease Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        /* Crop Card Actions */
+        .crop-actions {
+            padding: 10px 0 20px 0;
+            text-align: center;
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .btn-details {
+            flex: 1;
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-details:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-select {
+            flex: 1;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .btn-select:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-select i {
+            font-size: 1rem;
+        }
+
+        /* Make the entire card clickable for details */
+        .crop-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: white;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .crop-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .crop-image-container {
+            position: relative;
+            width: 100%;
+            height: 400px; /* Increased height for better visibility */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: 12px 12px 0 0;
+            padding: 0; /* Remove padding to allow image to touch container edges */
+        }
+
+        .crop-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Changed to cover to fill the container */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px 12px 0 0;
+            padding: 0; /* Remove padding to allow image to touch container edges */
+            box-sizing: border-box;
+        }
+        
+        .crop-card {
+            perspective: 1000px;
+            width: 100%;
+            height: 400px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .crop-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flip-card-back {
+            background: #f8f9fa;
+            transform: rotateY(180deg);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+        }
+
+        .flip-card-back h3 {
+            color: #2c3e50;
+            margin: 0 0 30px 0;
+            font-size: 1.5rem;
+            width: 100%;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flip-card-back p {
+            color: #666;
+            margin: 0 0 30px 0;
+            line-height: 1.6;
+            padding: 0 20px;
+            width: 100%;
+            max-width: 280px;
+            font-size: 0.95rem;
+        }
+        
+        .crop-card:hover {
+            transform: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .crop-card:hover .crop-image-container img {
+            transform: scale(1.05);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .crop-info {
+            padding: 15px;
+        }
+
+        .crop-info h3 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .crop-stats {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .crop-stats i {
+            margin-right: 4px;
+            color: #4CAF50;
+        }
+
+        @media (max-width: 768px) {
+            .crop-actions {
+                flex-direction: column;
+            }
+            
+            .btn-details,
+            .btn-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <style>
+        /* Navbar Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            padding-left: 12px;
+        }
+        
+        .navbar .logo img {
+            width: 150px;
+            height: auto;
+            object-fit: contain;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .btn-predict {
+            background: #4CAF50;
+            color: white !important;
+            padding: 0.5rem 1.5rem !important;
+            border-radius: 50px;
+            margin-left: 1rem;
+        }
+
+        .btn-predict:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-predict::after {
+            display: none !important;
+        }
+
+        .close-btn {
+            display: none;
+            font-size: 2rem;
+            color: #333;
+        }
+
+        @media (max-width: 992px) {
+            .navbar .container {
+                padding: 0 2rem;
+                justify-content: flex-end;
+            }
+
+            .nav-links {
+                display: flex;
+                position: static;
+                width: auto;
+                height: auto;
+                background: transparent;
+                flex-direction: row;
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .close-btn {
+                display: none;
+            }
+            
+            .menu-toggle {
+                display: none;
+            }
+            
+            .nav-links a {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .btn-predict {
+                margin-left: 0.5rem;
+                padding: 0.4rem 1rem !important;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar .logo img {
+                width: 120px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+    
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="https://cropcare.co.ke/wp-content/uploads/2021/06/cropcare-logo-1-300x94.png" alt="CropCare Logo">
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="{{ url_for('disease_form') }}" class="nav-link">Predict</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <a href="{{ url_for('disease_form') }}" class="btn-predict">Try Predictor</a>
+                <a href="javascript:void(0);" class="close-btn" onclick="closeNav()">&times;</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="home">
+        <div class="container" style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 3rem;">
+            <div class="hero-content" style="flex: 1;">
+                <div style="max-width: 800px; text-align: left;">
+                    <h1 style="margin-bottom: 1.5rem; font-size: 2.75rem; line-height: 1.2; color: #2d3748;">Smart Crop Disease Prediction</h1>
+                    <p style="max-width: 600px; margin: 0 0 2.5rem; line-height: 1.7; font-size: 1.15rem; color: #4a5568;">
+                        Identify plant diseases with AI and get instant recommendations for healthier crops. Our advanced system helps farmers detect diseases early and take preventive measures.
+                    </p>
+                    <div class="hero-stats" style="display: flex; gap: 3rem; margin-top: 2.5rem;">
+                        <div class="stat" style="text-align: left;">
+                            <div class="stat-number" style="font-size: 2.25rem; font-weight: 700; color: #2d3748; line-height: 1.2;">95%</div>
+                            <div class="stat-label" style="color: #718096; font-size: 1rem; margin-top: 0.5rem;">Accuracy</div>
+                        </div>
+                        <div class="stat" style="text-align: left;">
+                            <div class="stat-number" style="font-size: 2.25rem; font-weight: 700; color: #2d3748; line-height: 1.2;">50+</div>
+                            <div class="stat-label" style="color: #718096; font-size: 1rem; margin-top: 0.5rem;">Crop Types</div>
+                        </div>
+                        <div class="stat" style="text-align: left;">
+                            <div class="stat-number" style="font-size: 2.25rem; font-weight: 700; color: #2d3748; line-height: 1.2;">24/7</div>
+                            <div class="stat-label" style="color: #718096; font-size: 1rem; margin-top: 0.5rem;">Support</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image" style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem 0;">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeALUlftAAkkhfKhratw1nULVid5tYK4m28w&s" 
+                     alt="AI analyzing plant health" 
+                     class="hero-box-animation"
+                     style="max-width: 100%; height: auto; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1);">
+            </div>
+        </div>
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </header>
+
+    <!-- All Crops Section -->
+    <section class="crops-grid" id="all-crops">
+        <div class="container">
+            <!-- Kharif Crops -->
+            <h2 class="section-title" style="margin-top: 1.5rem;">🌾 Kharif Season Crops</h2>
+            <p class="section-subtitle" style="margin-bottom: 2rem;">Monsoon crops (June to October)</p>
+            
+            <div class="crop-grid">
+                <!-- Rice -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://m.media-amazon.com/images/I/71OKZExBnkL._AC_UF1000,1000_QL80_.jpg" alt="Rice">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Rice</h3>
+                            <p>Major monsoon crop; requires abundant water.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='rice') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Maize -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://store.veggieconcept.ng/wp-content/uploads/2024/03/Maize-Seeds.jpg" alt="Maize">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Maize</h3>
+                            <p>Warm-season cereal crop needing plenty of sunlight.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='maize') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cotton -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://thumbs.dreamstime.com/b/cotton-seed-hand-seeds-farm-their-picture-191017882.jpg" alt="Cotton">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Cotton</h3>
+                            <p>Fiber crop thriving in black soil and warm climate.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='cotton') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Soybean -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPBhdAdP8RPELq4pCcktP2sh5uq50k2YVjIA&s" alt="Soybean">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Soybean</h3>
+                            <p>Protein-rich oilseed thriving in moderate rainfall.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='soybean') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Groundnut -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://2.wlimg.com/product_images/bc-full/2023/10/12421504/raw-groundnut-seeds-1696837820-7120970.jpg" alt="Groundnut">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Groundnut</h3>
+                            <p>Oilseed crop suited for sandy loam soil.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='groundnut') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sorghum -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://5.imimg.com/data5/NY/EV/MY-11817306/sorghum-seeds.jpg" alt="Sorghum">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Sorghum</h3>
+                            <p>Drought-tolerant staple grown in semi-arid regions.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='sorghum') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rabi Crops -->
+            <h2 class="section-title" style="margin-top: 4rem;">🌾 Rabi Season Crops</h2>
+            <p class="section-subtitle" style="margin-bottom: 2rem;">Winter crops (October to March)</p>
+            
+            <div class="crop-grid">
+                <!-- Wheat -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://img500.exportersindia.com/product_images/bc-500/2022/4/5505799/wheat-seeds-1651228361-6314884.jpeg" alt="Wheat">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Wheat</h3>
+                            <p>Main winter cereal crop needing cool weather.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='wheat') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Barley -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://m.media-amazon.com/images/I/71zrh-xst0L.jpg" alt="Barley">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Barley</h3>
+                            <p>Hardy crop adapted to dry climate.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='barley') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gram (Chickpea) -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://cdn.britannica.com/65/176565-050-D6AB65D7/chickpeas-garbanzos.jpg" alt="Chickpea">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Chickpea</h3>
+                            <p>Pulse crop with minimal irrigation needs.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='chickpea') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mustard -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://nuttyyogi.com/cdn/shop/products/MustardSeeds.png?v=1680767117" alt="Mustard">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Mustard</h3>
+                            <p>Oilseed crop best grown in cool winters.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='mustard') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Peas -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://creativefarmer.in/cdn/shop/products/430342.jpg?v=1616235853" alt="Peas">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Peas</h3>
+                            <p>Cool-season crop used as vegetable and pulse.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='peas') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Linseed -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://www.thegardener.co.za/wp-content/uploads/2020/10/shutterstock_784670200-cropped.jpg" alt="Linseed">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Linseed</h3>
+                            <p>Crop cultivated for oil and fiber.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='linseed') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zaid Crops -->
+            <h2 class="section-title" style="margin-top: 4rem;">🌾 Zaid Season Crops</h2>
+            <p class="section-subtitle" style="margin-bottom: 2rem;">Summer crops (March to June)</p>
+            
+            <div class="crop-grid">
+                <!-- Watermelon -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://www.zaycca.com/cdn/shop/files/3_5df48c9f-93e6-4ef4-81cc-628987c76d89.png?v=1742564566&width=1946" alt="Watermelon">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Watermelon</h3>
+                            <p>Heat-loving fruit grown in summer.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='watermelon') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Muskmelon -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://www.greendna.in/cdn/shop/products/musk2_ff451016-1ac3-4d8e-8a85-269d5224194d_800x.jpg?v=1605367320" alt="Muskmelon">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Muskmelon</h3>
+                            <p>Sweet fruit requiring warm dry weather.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='muskmelon') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cucumber -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://welldales.co.uk/wp-content/uploads/2022/08/cucumber-large-long-giant-xl-seeds-garden-uk-grow-british-beth-alpha-marketmore-feature-e1661611206144.jpg" alt="Cucumber">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Cucumber</h3>
+                            <p>Fast-growing summer vegetable.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='cucumber') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bitter Gourd -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://m.media-amazon.com/images/I/61yjgR9oOTL._AC_UF1000,1000_QL80_.jpg" alt="Bitter Gourd">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Bitter Gourd</h3>
+                            <p>Summer vine crop rich in nutrients.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='bitter-gourd') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pumpkin -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://img.freepik.com/free-photo/pumpkin-seeds-were-poured-from-sack-ground_1150-34562.jpg?semt=ais_hybrid&w=740&q=80" alt="Pumpkin">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Pumpkin</h3>
+                            <p>Low-maintenance summer vegetable.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='pumpkin') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ridge Gourd -->
+                <div class="crop-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="crop-image-container">
+                                <img src="https://rukminim2.flixcart.com/image/480/640/xif0q/plant-seed/9/4/w/50-vegetable-ridge-gourd-jhinge-10gm-knessin-original-imah29tvpqpb7tth.jpeg?q=90" alt="Ridge Gourd">
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3>Ridge Gourd</h3>
+                            <p>Climber thriving in hot climate.</p>
+                            <div class="crop-actions">
+                                <a href="{{ url_for('disease_form', crop='ridge-gourd') }}" class="btn-select">Select <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about" style="padding: 5rem 0; background-color: #f8fafc;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
+            <span class="section-tag" style="display: block; text-align: center; color: #4CAF50; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">About Us</span>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: flex-start;">
+                <!-- Left Column -->
+                <div class="about-content" style="padding-right: 2rem;">
+                    <h2 class="section-title" style="font-size: 2.25rem; color: #2d3748; margin-bottom: 1.5rem; line-height: 1.2;">Revolutionizing Agriculture with AI</h2>
+                    <p style="color: #4a5568; line-height: 1.7; margin-bottom: 2rem; font-size: 1.05rem;">
+                        Our AI-powered crop disease prediction system is designed to help farmers identify plant diseases at an early stage and take preventive measures to protect their crops. Using advanced machine learning algorithms and computer vision technology, we analyze various parameters to provide accurate disease predictions and personalized recommendations.
+                    </p>
+                    
+                    <div class="about-stats" style="display: flex; gap: 2.5rem; margin-top: 2.5rem; flex-wrap: wrap;">
+                        <div class="stat-item" style="text-align: center;">
+                            <div class="stat-number" style="font-size: 2.25rem; font-weight: 700; color: #2d3748; line-height: 1.2;">92%</div>
+                            <div class="stat-label" style="color: #718096; font-size: 0.95rem; margin-top: 0.5rem;">Accuracy</div>
+                        </div>
+                        <div class="stat-item" style="text-align: center;">
+                            <div class="stat-number" style="font-size: 2.25rem; font-weight: 700; color: #2d3748; line-height: 1.2;">18+</div>
+                            <div class="stat-label" style="color: #718096; font-size: 0.95rem; margin-top: 0.5rem;">Crop Types</div>
+                        </div>
+                        <div class="stat-item" style="text-align: center;">
+                            <div class="stat-number" style="font-size: 2.25rem; font-weight: 700; color: #2d3748; line-height: 1.2;">12K+</div>
+                            <div class="stat-label" style="color: #718096; font-size: 0.95rem; margin-top: 0.5rem;">Farmers Served</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Feature Grid -->
+                <div class="features-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                    <!-- Feature 1 -->
+                    <div class="feature" style="background: white; border-radius: 12px; padding: 1.75rem; transition: all 0.3s ease; border: 1px solid #e2e8f0; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                        <div class="feature-icon" style="width: 64px; height: 64px; background: #ebf8ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #3182ce; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                            <i class="fas fa-robot" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; padding-top: 13px;"></i>
+                        </div>
+                        <div class="feature-content" style="width: 100%;">
+                            <h4 style="font-size: 1.15rem; margin: 0 0 0.75rem 0; color: #2d3748; font-weight: 600;">AI-Powered Analysis</h4>
+                            <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; margin: 0;">Advanced machine learning models trained on thousands of crop disease samples.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 2 -->
+                    <div class="feature" style="background: white; border-radius: 12px; padding: 1.75rem; transition: all 0.3s ease; border: 1px solid #e2e8f0; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                        <div class="feature-icon" style="width: 64px; height: 64px; background: #fff5f5; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #e53e3e; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                            <i class="fas fa-mobile-alt" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; padding-top: 13px;"></i>
+                        </div>
+                        <div class="feature-content" style="width: 100%;">
+                            <h4 style="font-size: 1.15rem; margin: 0 0 0.75rem 0; color: #2d3748; font-weight: 600;">Mobile First</h4>
+                            <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; margin: 0;">Works seamlessly on all devices, from smartphones to desktops.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 3 -->
+                    <div class="feature" style="background: white; border-radius: 12px; padding: 1.75rem; transition: all 0.3s ease; border: 1px solid #e2e8f0; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                        <div class="feature-icon" style="width: 64px; height: 64px; background: #fffaf0; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #dd6b20; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                            <i class="fas fa-shield-alt" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; padding-top: 13px;"></i>
+                        </div>
+                        <div class="feature-content" style="width: 100%;">
+                            <h4 style="font-size: 1.15rem; margin: 0 0 0.75rem 0; color: #2d3748; font-weight: 600;">Data Security</h4>
+                            <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; margin: 0;">Encrypted and protected with industry-standard security measures.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 4 -->
+                    <div class="feature" style="background: white; border-radius: 12px; padding: 1.75rem; transition: all 0.3s ease; border: 1px solid #e2e8f0; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                        <div class="feature-icon" style="width: 64px; height: 64px; background: #f0fff4; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #38a169; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                            <i class="fas fa-chart-line" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; padding-top: 15px;"></i>
+                        </div>
+                        <div class="feature-content" style="width: 100%;">
+                            <h4 style="font-size: 1.15rem; margin: 0 0 0.75rem 0; color: #2d3748; font-weight: 600;">Real-time Monitoring</h4>
+                            <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; margin: 0;">Track your crop health and receive timely alerts.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="section-header" style="text-align: center; margin-bottom: 3rem;">
+                <span class="section-tag" style="display: inline-block; color: #4CAF50; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Get In Touch</span>
+                <h2 class="section-title" style="font-size: 2.25rem; margin-bottom: 1rem; color: #2c3e50;">Contact Us</h2>
+                <p class="section-subtitle" style="color: #6c757d; font-size: 1.1rem; max-width: 700px; margin: 0 auto 2rem; line-height: 1.6;">Have questions or feedback? We'd love to hear from you!</p>
+            </div>
+            
+            <div class="contact-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem; padding: 0 1rem; align-items: stretch;">
+                <div class="contact-info" style="padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; height: 100%;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: #2c3e50;">Our Contact Information</h3>
+                    <p style="color: #6c757d; margin-bottom: 2rem; line-height: 1.6;">Fill out the form or reach out to us directly using the contact details below.</p>
+                    
+                    <div class="contact-methods" style="margin-bottom: 1.5rem;">
+                        <div class="contact-method" style="display: flex; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;">
+                            <div class="contact-icon" style="margin-right: 1rem; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; background-color: #e8f5e9; border-radius: 50%; flex-shrink: 0; position: relative;">
+                                <i class="fas fa-envelope" style="color: #4CAF50; font-size: 1.25rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4 style="font-size: 1.1rem; margin: 0 0 0.5rem 0; color: #2c3e50; font-weight: 500;">Email Us</h4>
+                                <p style="color: #6c757d; margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.5;">support@cropcare.com</p>
+                                <p style="color: #6c757d; margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.5;">info@cropcare.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method" style="display: flex; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;">
+                            <div class="contact-icon" style="margin-right: 1rem; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; background-color: #e8f5e9; border-radius: 50%; flex-shrink: 0; position: relative;">
+                                <i class="fas fa-phone-alt" style="color: #4CAF50; font-size: 1.25rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4 style="font-size: 1.1rem; margin: 0 0 0.5rem 0; color: #2c3e50; font-weight: 500;">Call Us</h4>
+                                <p style="color: #6c757d; margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.5;">+91 98765 43210</p>
+                                <p style="color: #6c757d; margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.5;">+91 11 2345 6789</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method" style="display: flex; align-items: flex-start; margin-bottom: 1.5rem;">
+                            <div class="contact-icon" style="margin-right: 1rem; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; background-color: #e8f5e9; border-radius: 50%; flex-shrink: 0; position: relative;">
+                                <i class="fas fa-map-marker-alt" style="color: #4CAF50; font-size: 1.25rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4 style="font-size: 1.1rem; margin: 0 0 0.5rem 0; color: #2c3e50; font-weight: 500;">Visit Us</h4>
+                                <p style="color: #6c757d; margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.5;">123 Agri Tech Park, Sector 62</p>
+                                <p style="color: #6c757d; margin: 0.25rem 0; font-size: 0.95rem; line-height: 1.5;">Noida, Uttar Pradesh 201309, India</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="business-hours" style="margin: 1.5rem 0 0 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <h4 style="font-size: 1.25rem; margin-bottom: 1rem; color: #2c3e50; position: relative; padding-bottom: 0.75rem;">
+                            <span style="display: block; width: 50px; height: 3px; background: #4CAF50; position: absolute; bottom: 0; left: 0; border-radius: 3px;"></span>
+                            Working Hours
+                        </h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0;">
+                                <span style="font-weight: 500; color: #2c3e50;">Monday - Friday:</span>
+                                <span style="color: #6c757d;">9:00 AM - 6:00 PM</span>
+                            </li>
+                            <li style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0;">
+                                <span style="font-weight: 500; color: #2c3e50;">Saturday:</span>
+                                <span style="color: #6c757d;">10:00 AM - 4:00 PM</span>
+                            </li>
+                            <li style="display: flex; justify-content: space-between; padding: 0.75rem 0;">
+                                <span style="font-weight: 500; color: #2c3e50;">Sunday:</span>
+                                <span style="color: #6c757d;">Closed</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                </div>
+                
+                <div class="contact-form-container" style="display: flex; flex-direction: column; height: 100%;">
+                    <form id="contactForm" class="contact-form" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin-bottom: 2rem; flex-grow: 1; display: flex; flex-direction: column;" onsubmit="submitContactForm(event)">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="name" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Your Name <span class="required" style="color: #e74c3c;">*</span></label>
+                            <input type="text" id="name" name="name" required style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Email Address <span class="required" style="color: #e74c3c;">*</span></label>
+                            <input type="email" id="email" name="email" required style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="subject" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Subject</label>
+                        <input type="text" id="subject" name="subject" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="message" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">Your Message <span class="required" style="color: #e74c3c;">*</span></label>
+                        <textarea id="message" name="message" rows="5" required style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; min-height: 150px; resize: vertical; transition: border-color 0.3s ease;"></textarea>
+                    </div>
+                    
+                    <div class="form-checkbox" style="margin: 1.5rem 0;">
+                        <input type="checkbox" id="newsletter" name="newsletter" checked style="margin-right: 0.75rem;">
+                        <label for="newsletter" style="color: #6c757d; font-size: 0.9rem; display: inline-flex; align-items: center;">
+                            Subscribe to our newsletter for updates and tips
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 0.875rem 2rem; font-size: 1rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; transition: all 0.3s ease; width: 100%;">
+                        <span>Send Message</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                    
+                    <div class="form-note" style="margin: 1.5rem 0 1rem; text-align: center;">
+                        <p style="margin-bottom: 1rem;"><span class="required">*</span> Required fields</p>
+                        <div class="social-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                            <p style="color: #6c757d; margin-bottom: 1rem; font-weight: 500;">Follow Us</p>
+                            <div class="social-icons" style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                                <a href="#" class="social-icon" aria-label="Facebook" style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #f5f5f5; color: #4CAF50; transition: all 0.3s ease; text-decoration: none; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="#" class="social-icon" aria-label="Twitter" style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #f5f5f5; color: #4CAF50; transition: all 0.3s ease; text-decoration: none; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="social-icon" aria-label="Instagram" style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #f5f5f5; color: #4CAF50; transition: all 0.3s ease; text-decoration: none; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                <a href="#" class="social-icon" aria-label="LinkedIn" style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #f5f5f5; color: #4CAF50; transition: all 0.3s ease; text-decoration: none; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </section>
+
+
+    <style>
+        /* Floating Animation */
+        @keyframes boxPath {
+            0% { 
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                animation-timing-function: ease-in-out;
+            }
+            25% { 
+                transform: translate(30px, 0) rotate(5deg) scale(1.02);
+                animation-timing-function: ease-in-out;
+            }
+            50% { 
+                transform: translate(30px, 30px) rotate(0deg) scale(1);
+                animation-timing-function: ease-in-out;
+            }
+            75% { 
+                transform: translate(0, 30px) rotate(-5deg) scale(0.98);
+                animation-timing-function: ease-in-out;
+            }
+            100% { 
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                animation-timing-function: ease-in-out;
+            }
+        }
+        
+        .hero-box-animation {
+            animation: boxPath 10s ease-in-out infinite;
+            position: relative;
+            transform-origin: center;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .hero .container {
+                flex-direction: column;
+                text-align: center;
+            }
+            .hero-content > div {
+                margin: 0 auto;
+                text-align: center;
+            }
+            .hero-stats {
+                justify-content: center !important;
+            }
+            .hero-image {
+                margin-top: 3rem;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.25rem !important;
+            }
+            .hero p {
+                font-size: 1rem !important;
+            }
+            .hero-stats {
+                flex-direction: column;
+                gap: 1.5rem !important;
+                margin-top: 2rem !important;
+            }
+            .stat {
+                text-align: center !important;
+            }
+            .hero-image {
+                max-width: 100%;
+                padding: 0 1rem;
+            }
+        }
+        
+        .social-icon:hover {
+            background: #4CAF50 !important;
+            color: white !important;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 992px) {
+            .contact-container {
+                grid-template-columns: 1fr !important;
+            }
+            .contact-form-container {
+                order: 2;
+            }
+            .contact-info {
+                order: 1;
+            }
+        }
+    </style>
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span>CropCare</span>
+                    </div>
+                    <p class="footer-about-text">Empowering farmers with AI-driven crop disease prediction and prevention solutions to ensure food security and sustainable agriculture.</p>
+                    <h4 class="footer-heading" style="margin: 20px 0 15px 0; text-align: center;">Follow Us</h4>
+
+<div class="footer-social">
+    <a href="#" aria-label="Facebook" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+    <a href="#" aria-label="Twitter" class="social-icon"><i class="fab fa-twitter"></i></a>
+    <a href="#" aria-label="Instagram" class="social-icon"><i class="fab fa-instagram"></i></a>
+    <a href="#" aria-label="LinkedIn" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+    <a href="#" aria-label="YouTube" class="social-icon"><i class="fab fa-youtube"></i></a>
+</div>
+
+<style>
+    .social-icon:hover {
+        background: #4CAF50;
+        transform: translateY(-3px) scale(1.08);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+</style>
+
+                </div>
+                
+                <div class="footer-links">
+                    <h4 class="footer-heading">Quick Links</h4>
+                    <ul>
+                        <li><a href="#home"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="#about"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                        <li><a href="#predict"><i class="fas fa-chevron-right"></i> Disease Prediction</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4 class="footer-heading">Our Services</h4>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Disease Detection</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Crop Health Monitoring</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Weather Forecast</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Expert Consultation</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Farming Resources</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Training Programs</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-contact">
+                    <h4 class="footer-heading">Contact Info</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>123 Agri Tech Park, Sector 62<br>Noida, Uttar Pradesh 201309, India</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone-alt"></i>
+                            <div>
+                                <a href="tel:+919876543210">+91 98765 43210</a>
+                                <a href="tel:+911123456789">+91 11 2345 6789</a>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <a href="mailto:support@cropcare.com">support@cropcare.com</a>
+                                <a href="mailto:info@cropcare.com">info@cropcare.com</a>
+                            </div>
+                        </li>
+                    </ul>
+                    
+                    <div class="footer-apps">
+                        <h5>Download Our App</h5>
+                        <div class="app-buttons">
+                            <a href="#" class="app-btn">
+                                <i class="fab fa-google-play"></i>
+                                <div>
+                                    <span>GET IT ON</span>
+                                    <strong>Google Play</strong>
+                                </div>
+                            </a>
+                            <a href="#" class="app-btn">
+                                <i class="fab fa-apple"></i>
+                                <div>
+                                    <span>Download on the</span>
+                                    <strong>App Store</strong>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2023 CropCare. All Rights Reserved.</p>
+                </div>
+                
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Sitemap</a>
+                </div>
+                
+                <div class="footer-payment">
+                    <span>We accept:</span>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                        <i class="fab fa-cc-amazon-pay"></i>
+                        <i class="fab fa-google-pay"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-credits">
+            <div class="container">
+                <p>Made with <i class="fas fa-heart"></i> by the CropCare Team | <a href="#">Report an Issue</a> | <a href="#">Help Center</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal" id="cropModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <h2 id="modalCropName"></h2>
+                <div class="crop-details">
+                    <div class="crop-image">
+                        <img id="modalCropImage" src="" alt="Crop">
+                    </div>
+                    <div class="crop-info">
+                        <h3>About this crop</h3>
+                        <p id="modalCropDescription"></p>
+                        <div class="crop-stats">
+                            <div class="stat">
+                                <i class="fas fa-temperature-high"></i>
+                                <span id="modalCropTemp"></span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-tint"></i>
+                                <span id="modalCropWater"></span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-sun"></i>
+                                <span id="modalCropSun"></span>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <a href="#" class="btn-secondary" id="selectCropBtn">Select This Crop</a>
+                            <a href="#" class="btn-outline" data-close-modal>Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navbar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+            const navLinksContainer = document.getElementById('navLinks');
+            
+            // Smooth scrolling for navigation links
+            navLinks.forEach(link => {
+                if (link.getAttribute('href').startsWith('#')) {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href');
+                        const targetSection = document.querySelector(targetId);
+                        
+                        if (targetSection) {
+                            window.scrollTo({
+                                top: targetSection.offsetTop - 80, // Adjust for fixed header
+                                behavior: 'smooth'
+                            });
+                            
+                            // Update active class
+                            navLinks.forEach(link => link.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            // Close mobile menu if open
+                            if (window.innerWidth <= 992) {
+                                closeNav();
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Scroll-based active link highlighting
+            function updateActiveLink() {
+                const scrollPosition = window.scrollY + 100; // Add offset for better UX
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    const sectionHeight = section.offsetHeight;
+                    const sectionId = section.getAttribute('id');
+                    
+                    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${sectionId}`) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+                
+                // Handle home section (top of page)
+                if (window.scrollY < 100) {
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    document.querySelector('a[href="#home"]')?.classList.add('active');
+                }
+            }
+            
+            // Mobile menu toggle
+            function toggleNav() {
+                navLinksContainer.classList.toggle('active');
+            }
+            
+            window.toggleNav = toggleNav;
+            
+            function closeNav() {
+                navLinksContainer.classList.remove('active');
+            }
+            
+            window.closeNav = closeNav;
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.nav-links') && !e.target.closest('.menu-toggle') && window.innerWidth <= 992) {
+                    closeNav();
+                }
+            });
+            
+            
+            // Initial update
+            updateActiveLink();
+            
+            // Update on scroll
+            window.addEventListener('scroll', updateActiveLink);
+            
+            // Update on window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 992) {
+                    closeNav();
+                }
+            });
+        });
+        
+        // Sample crop data with more crops
+        const crops = [
+            {
+                id: 1,
+                name: 'Tomato',
+                category: 'vegetables',
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzU97v3b3nKI8xFXT187e9JifKez4BSltglk-3ykLsz62dbrO3zoz1uLHoPFkJyl8mJM0&usqp=CAU',
+                description: 'Tomatoes are widely grown for their edible fruits. They are rich in vitamins A and C and are used in various cuisines worldwide.',
+                temperature: '20-30°C',
+                water: 'Regular watering',
+                sunlight: 'Full sun'
+            },
+            {
+                id: 2,
+                name: 'Wheat',
+                category: 'grains',
+                image: '{{ url_for("static", filename="images/placeholder.svg") }}',
+                description: 'Wheat is a cereal grain that is a worldwide staple food. It is used to make flour for bread, pasta, and other food products.',
+                temperature: '15-20°C',
+                water: 'Moderate',
+                sunlight: 'Full sun'
+            },
+            {
+                id: 3,
+                name: 'Rice',
+                category: 'grains',
+                image: '{{ url_for("static", filename="images/placeholder.svg") }}',
+                description: 'Rice is the seed of the grass species Oryza sativa or Oryza glaberrima. It is the most widely consumed staple food for a large part of the world\'s human population.',
+                temperature: '20-35°C',
+                water: 'High',
+                sunlight: 'Full sun to partial shade'
+            },
+            {
+                id: 4,
+                name: 'Potato',
+                category: 'vegetables',
+                image: '{{ url_for("static", filename="images/placeholder.svg") }}',
+                description: 'Potatoes are starchy tubers that are a staple food in many parts of the world. They are rich in carbohydrates and vitamin C.',
+                temperature: '15-20°C',
+                water: 'Regular watering',
+                sunlight: 'Full sun'
+            },
+            {
+                id: 5,
+                name: 'Corn',
+                category: 'grains',
+                image: '{{ url_for("static", filename="images/placeholder.svg") }}',
+                description: 'Corn, also known as maize, is a cereal grain first domesticated by indigenous peoples in southern Mexico about 10,000 years ago.',
+                temperature: '21-30°C',
+                water: 'Moderate to high',
+                sunlight: 'Full sun'
+            },
+            {
+                id: 6,
+                name: 'Soybean',
+                category: 'legumes',
+                image: '{{ url_for("static", filename="images/placeholder.svg") }}',
+                description: 'Soybeans are a species of legume native to East Asia, widely grown for their edible bean which has numerous uses.',
+                temperature: '20-30°C',
+                water: 'Moderate',
+                sunlight: 'Full sun'
+            }
+        ];
+
+        // DOM Elements
+        const cropGrid = document.getElementById('cropGrid');
+        const modal = document.getElementById('cropModal');
+        const modalCropName = document.getElementById('modalCropName');
+        const modalCropImage = document.getElementById('modalCropImage');
+        const modalCropDescription = document.getElementById('modalCropDescription');
+        const modalCropTemp = document.getElementById('modalCropTemp');
+        const modalCropWater = document.getElementById('modalCropWater');
+        const modalCropSun = document.getElementById('modalCropSun');
+        const selectCropBtn = document.getElementById('selectCropBtn');
+        const closeModal = document.querySelector('.close-modal');
+        const closeModalBtns = document.querySelectorAll('[data-close-modal]');
+
+        // Display crops in grid
+        function displayCrops() {
+            cropGrid.innerHTML = '';
+            crops.forEach(crop => {
+                const cropCard = document.createElement('div');
+                cropCard.className = 'crop-card';
+                cropCard.dataset.category = crop.category;
+                cropCard.innerHTML = `
+                    <div class="crop-card-inner">
+                        <div class="crop-card-front">
+                            <div class="crop-image-container">
+                                <img src="${crop.image}" alt="${crop.name}" onerror="this.onerror=null;this.src=window.location.origin + '/static/images/placeholder.svg';">
+                            </div>
+                            <div class="crop-info">
+                                <h3>${crop.name}</h3>
+                                <div class="crop-stats">
+                                    <span><i class="fas fa-temperature-high"></i> ${crop.temperature}</span>
+                                    <span><i class="fas fa-tint"></i> ${crop.water}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="crop-actions">
+                            <button class="btn-details" data-crop-id="${crop.id}">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                            <a href="{{ url_for('disease_form') }}?crop=${encodeURIComponent(crop.name.toLowerCase())}" class="btn-select" style="background: #4CAF50; color: white; text-decoration: none;">
+                                <i class="fas fa-check-circle"></i> Select
+                            </a>
+                        </div>
+                    </div>
+                `;
+                cropGrid.appendChild(cropCard);
+            });
+
+            // Add event listeners to detail buttons after all cards are created
+            document.querySelectorAll('.btn-details').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const cropId = parseInt(btn.dataset.cropId);
+                    const crop = crops.find(c => c.id === cropId);
+                    if (crop) {
+                        openModal(crop);
+                    }
+                });
+            });
+        }
+
+        // Open modal with crop details
+        function openModal(crop) {
+            modalCropName.textContent = crop.name;
+            modalCropImage.src = crop.image;
+            modalCropImage.alt = crop.name;
+            modalCropDescription.textContent = crop.description;
+            modalCropTemp.textContent = crop.temperature;
+            modalCropWater.textContent = crop.water;
+            modalCropSun.textContent = crop.sunlight;
+            selectCropBtn.href = `{{ url_for('disease_form') }}?crop=${encodeURIComponent(crop.name.toLowerCase())}`;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModalFunc() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            displayCrops();
+            
+            // Close modal when clicking outside content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModalFunc();
+                }
+            });
+
+            // Close modal with close button
+            closeModal.addEventListener('click', closeModalFunc);
+            
+            // Close modal with any close button
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', closeModalFunc);
+            });
+
+            // Mobile menu toggle
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (hamburger) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                });
+            }
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Close mobile menu if open
+                        if (hamburger && hamburger.classList.contains('active')) {
+                            hamburger.classList.remove('active');
+                            navLinks.classList.remove('active');
+                        }
+                    }
+                });
+            });
+        });
+
+        // Show/hide scroll to top button
+        window.addEventListener('scroll', () => {
+            const scrollToTop = document.querySelector('.scroll-to-top');
+            if (window.pageYOffset > 300) {
+                scrollToTop?.classList.add('show');
+            } else {
+                scrollToTop?.classList.remove('show');
+            }
+        });
+
+        // Contact Form Submission Handler
+        function submitContactForm(event) {
+            event.preventDefault();
+            
+            // Here you would typically send the form data to your server
+            // For now, we'll just show the success message
+            
+            // Show success message
+            Swal.fire({
+                title: 'Message Sent Successfully!',
+                text: 'Thank you for contacting us. We have received your message and will get back to you as soon as possible.',
+                icon: 'success',
+                confirmButtonColor: '#4CAF50',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'sweet-alert-popup',
+                    title: 'sweet-alert-title',
+                    confirmButton: 'sweet-alert-button'
+                }
+            }).then((result) => {
+                // Reset form after submission
+                if (result.isConfirmed) {
+                    document.getElementById('contactForm').reset();
+                }
+            });
+            
+            return false;
+        }
+    </script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sweet-alert-popup {
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        .sweet-alert-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .sweet-alert-button {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .swal2-styled.swal2-confirm {
+            background-color: #4CAF50 !important;
+        }
+    </style>
+</body>
+</html>

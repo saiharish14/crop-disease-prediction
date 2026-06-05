@@ -39,4 +39,4 @@ def ensure_model(force: bool = False):
     print(f'Testing Accuracy: {test_score:.4f}')
 
 if __name__ == '__main__':
-    ensure_model(force=False)
+    ensure_model(force=True)
